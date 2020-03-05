@@ -1,0 +1,134 @@
+#Pasted from Jupiter Notebook
+
+import pandas as pd
+import pandas_datareader as pdr
+import csv
+from datetime import datetime,timedelta
+import openpyxl
+
+weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+#startTemp=datetime.datetime(2020,2,4)
+
+def get_previous_byday(dayname, start_date=None):
+    if start_date is None:
+        start_date = datetime.today()
+    day_num = start_date.weekday()
+    day_num_target = weekdays.index(dayname)
+    days_ago = (7 + day_num - day_num_target) % 7
+    if days_ago ==0 and start_date.hour >= 13:
+        return start_date
+    if days_ago == 0:
+        days_ago = 7
+    target_date = start_date - timedelta(days=days_ago)
+    return target_date
+
+daynameTemp = str(input("Ente the day name for market close ex :"))
+
+print("This is the target date:", get_previous_byday(daynameTemp))
+dateText = get_previous_byday(daynameTemp)
+
+#endDate = datetime.strptime(dateText, srt('%Y-%M-%D'))
+
+myYear = str(dateText.year)
+myMonth = str(dateText.month)
+myDay = str(dateText.day)
+
+#endDate = (myYear+'-'+myMonth+'-'+myDay)
+
+print(myYear)
+print(myMonth)
+print(myDay)
+type(myYear)
+
+#SAGE=pdr.get_data_yahoo('SAGE',start=datetime(2015,2,11), end=datetime(2020,2,19))
+SAGE=pdr.get_data_yahoo('SAGE',start=datetime(2020,1,1), end=datetime(int(myYear),int(myMonth),int(myDay)))
+
+#SAGE=pdr.get_data_yahoo('SAGE',start=datetime(2018,2,13), end=datetime(int(myYear),int(myMonth),int(myDay)))
+
+SAGE.describe()
+
+myFile = "C:\\Users\\c_marma\\Documents\\investments\\csv\\SAGE_"+myMonth+"_"+myDay+".csv"
+#SAGE.to_csv('C:\\Users\\c_marma\\Documents\\investments\\csv\\SAGE_02_19.csv')
+
+print(myFile)
+
+SAGE.to_csv(myFile)
+
+SAGE.head()
+
+#f= pd.ExcelWriter('c:/Temp/ibm.xlsx')
+#SAGE.to_excel(f, sheet_name='IBM')
+#f.save()
+
+f= pd.ExcelWriter('C:/Users/c_marma/Documents/PythonWebScrapingCookbook_Code/AutomateIt_Code/B05370_02_code/SAGE_'+myMonth+"_"+myDay+".xlsx")
+
+SAGE.to_excel(f, sheet_name = 'SAGE')
+
+f.save()
+
+#Workbook = openpyxl.load_workbook('C:/Users/c_marma/Documents/PythonWebScrapingCookbook_Code/AutomateIt_Code/B05370_02_code/Oxl_IRA_alldata_'+myMonth+"_"+myDay+".xlsx")
+
+workbook = openpyxl.load_workbook(f)
+
+print ("Workbook Object:", workbook.sheetnames)
+
+sheetSAGE = workbook["SAGE"]
+
+print ("SAGE sheet object:", sheetSAGE)
+
+download_SAGE=myFile
+#download_SAGE='C:\\Users\\c_marma\\Documents\\investments\\csv\\SAGE_02_19.csv'
+
+print ("First cell Object:", sheetSAGE["A1"])
+print ("Other Cell Object:", sheetSAGE.cell(row=1, column=4))
+
+print ("First Calander Date:", sheetSAGE["A1"].value, sheetSAGE["B2"].value)
+workbook.close()
+
+#f = pd.ExcelWriter('C:\\Users\\c_marma\\Documents\\PythonWebScrapingCookbook_Code\\AutomateIt_Code\\B05370_02_code\\mynew.xlsx')
+
+#SAGE.to_excel(f, index=False, sheet_name='Sheet3')
+
+#f.save()
+
+SAGE['Change']=SAGE.Open - SAGE.Close
+
+SAGE['Pct_Chg']=SAGE.Change/SAGE.Open
+
+import matplotlib.pyplot as plt
+
+SAGE['Pct_Chg'].plot(grid=True)
+
+#02_06
+
+def get(tickers, startdate, enddate):
+    def data(ticker):
+        return(pdr.get_data_yahoo(ticker, start=startdate, end=enddate))
+    datas=map(data,tickers)
+    return(pd.concat(datas,keys=tickers,names=['Ticker','Date']))
+#tickers=['FDVV','TLT','SAGE','IEFA','GOLD','FCNTX','JGH','AAXJ','FREL','SINA','WRB','SNP','CHL','CMA','VLO','SANM','SLVP','HDV','T']
+tickers=['FDVV','TLT','SAGE','IEFA','GOLD','FCNTX','JGH','AAXJ','WRB','SNP','CHL','CMA','VLO','SLVP','HDV','T']
+#all_data=get(tickers, datetime(2020,2,11), datetime(2020,2,19))
+all_data=get(tickers, datetime(2015,2,21), datetime(int(myYear),int(myMonth),int(myDay)))
+
+all_data
+
+all_data.index
+
+all_data.columns
+
+all_data.loc['GOLD':'GOLD', all_data.columns]
+
+all_data.loc['GOLD':'GOLD', all_data.columns].describe()
+
+#all_data.to_csv('C:\\Users\\c_marma\\Documents\\investments\\csv\\IRA_alldata_02_19.csv')
+
+myFileAll = "C:\\Users\\c_marma\\Documents\\investments\\csv\\Pandas_IRA_alldata_"+myMonth+"_"+myDay+".csv"
+#all_data = "C:\\Users\\c_marma\\Documents\\investments\\csv\\IRA_alldata_02_19.csv"
+
+all_data.to_csv(myFileAll)
+
+print(myFileAll)
+
+#download_all_data = ('C:\\Users\\c_marma\\Documents\\investments\\csv\\IRA_alldata_02_19.csv')
+download_all_data = (myFileAll)
